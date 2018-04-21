@@ -7,7 +7,7 @@ const buttons = [
   ['7', '8', '9', '/'],
   ['4', '5', '6', 'x'],
   ['1', '2', '3', '-'],
-  ['0', '.', '*', '+']
+  ['0', '.', '=', '+']
 ]
 
 export default class App extends React.Component {
@@ -17,6 +17,7 @@ export default class App extends React.Component {
     this.initialState = {
       displayValue: '0',
       operator: null,
+      firstValue: '',
       secondValue: '',
       nextValue: false
     }
@@ -43,7 +44,7 @@ export default class App extends React.Component {
   }
 
   handleInput = (input) => {
-    const { displayValue, operator } = this.state;
+    const { displayValue, operator, firstValue, secondValue, nextValue } = this.state;
 
     switch (input) {
       case '0':
@@ -59,21 +60,54 @@ export default class App extends React.Component {
         this.setState({
           displayValue: displayValue === '0' ? input : displayValue + input
         });
+
+        if (!nextValue) {
+          this.setState({
+            firstValue: firstValue + input
+          })
+        } else {
+          this.setState({
+            secondValue: secondValue + input
+          })          
+        }
         break;
       case '-':
       case '+':
       case 'x':
       case '/':
         this.setState({
+          nextValue: true,
           operator: input,
           displayValue: (operator !== null ? displayValue.substr(0, displayValue.length - 1) : displayValue) + input
         });
         break;
       case '.':
-        let dot = displayValue.slice(-1);
+        let dot = displayValue.toString().slice(-1);
         this.setState({
           displayValue: dot !== '.' ? displayValue + input : displayValue
         });
+
+        if (!nextValue) {
+          this.setState({
+            firstValue: firstValue + input
+          })
+        } else {
+          this.setState({
+            secondValue: secondValue + input
+          })
+        }        
+        break;
+      case '=':
+        // let formatOperator = (operator == 'x') ? '*' : (operator == 'sinal de divisão') ? '/' : operator
+        let formatOperator = (operator == 'x') ? '*' : operator
+        let result = eval(firstValue + operator + secondValue);
+        this.setState({
+          displayValue: result % 1 === 0 ? result : result.toFixed(2),
+          firstValue: result % 1 === 0 ? result : result.toFixed(2),
+          secondValue: '',
+          operator: null,
+          nextValue: false
+        })
         break;
       case 'CLEAR':
         this.setState(this.initialState);
@@ -81,10 +115,10 @@ export default class App extends React.Component {
       case 'DEL':
         let string = displayValue.toString();
         let deletedString = string.substr(0, string.length -1);
-
         
         this.setState({
-          displayValue: deletedString.length < 1 ? '0' : deletedString
+          displayValue: deletedString.length < 1 ? '0' : deletedString,
+          firstValue: deletedString.length < 1 ? '' : deletedString
         });
     }
 
@@ -107,6 +141,7 @@ export default class App extends React.Component {
   }
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1
@@ -122,7 +157,7 @@ const styles = StyleSheet.create({
   },
   resultText: {
     color: '#FFF',
-    fontSize: 80,
+    fontSize: 60,
     fontWeight: 'bold',
     padding: 20,
     textAlign: 'right'

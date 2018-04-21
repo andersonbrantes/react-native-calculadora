@@ -21,6 +21,7 @@ export default class InputNumberButton extends React.Component {
     }
 }
 
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
